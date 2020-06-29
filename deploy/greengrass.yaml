@@ -1,0 +1,453 @@
+AWSTemplateFormatVersion: 2010-09-09
+Parameters:
+  ModelS3Uri:
+    Type: String
+  S3BucketName:
+    Type: String
+  Core01CertificateArn:
+    Type: String
+  Core02CertificateArn:
+    Type: String
+Resources:
+  BluegrassInferenceServerExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: "BluegrassInferenceServerExecutionRole"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"
+      Policies:
+      - PolicyName: "BluegrassInferenceServerExecution"
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - logs:*
+            Resource: arn:aws:logs:*:*:*/aws/lambda/bluegrass_inference_server:*
+  BluegrassInferenceServerFunction:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      FunctionName: "bluegrass_inference_server"
+      Handler: "run_server.run_server_handler"
+      Role:
+        Fn::GetAtt:
+          - "BluegrassInferenceServerExecutionRole"
+          - "Arn"
+      Code: ./lambda_function
+      Runtime: "python2.7"
+  BluegrassInferenceServerFunctionFirstVersion:
+    Type: AWS::Lambda::Version
+    Properties:
+      FunctionName: "bluegrass_inference_server"
+    DependsOn: BluegrassInferenceServerFunction
+  BluegrassInferenceServerFunctionGGAlias:
+    Type: 'AWS::Lambda::Alias'
+    Properties:
+      Name: "GGAlias"
+      FunctionName: "bluegrass_inference_server"
+      FunctionVersion:
+        Fn::GetAtt:
+          - "BluegrassInferenceServerFunctionFirstVersion"
+          - "Version"
+    DependsOn: BluegrassInferenceServerFunctionFirstVersion
+  BluegrassStreamingRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: "BluegrassStreamingRole"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - firehose.amazonaws.com
+          Action:
+          - sts:AssumeRole
+          Condition:
+            StringEquals:
+              sts:ExternalId:
+                Ref: 'AWS::AccountId'
+      Path: "/"
+      Policies:
+      - PolicyName: "BluegrassStreamingRole"
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - logs:*
+            Resource: arn:aws:logs:*:*:*/aws/lambda/bluegrass_inference_server:*
+  BluegrassStreamingS3Policy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: "BluegrassStreamingS3Policy"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Action:
+              - "s3:AbortMultipartUpload"
+              - "s3:GetBucketLocation"
+              - "s3:ListBucket"
+              - "s3:ListBucketMultipartUploads"
+            Effect: "Allow"
+            Resource:
+              - Fn::Join:
+                  - ''
+                  - - 'arn:aws:s3:::'
+                    - Ref: S3BucketName
+          -
+            Action:
+              - "s3:GetObject"
+              - "s3:PutObject"
+              - "s3:DeleteObject"
+            Effect: "Allow"
+            Resource:
+              - Fn::Join:
+                - "/"
+                - - Fn::Join:
+                      - ''
+                      - - 'arn:aws:s3:::'
+                        - Ref: S3BucketName
+                  - "*"
+      Roles:
+        - Ref: "BluegrassStreamingRole"
+  BluegrassStreamingPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: "BluegrassStreamingPolicy"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Action:
+              - "firehose:PutRecordBatch"
+              - "firehose:DescribeDeliveryStream"
+            Effect: "Allow"
+            Resource:
+              Fn::GetAtt:
+                - "BluegrassInferenceStream"
+                - "Arn"
+      Roles:
+        - "BluegrassRole"
+  BluegrassInferenceStream:
+    Type: AWS::KinesisFirehose::DeliveryStream
+    Properties:
+      ExtendedS3DestinationConfiguration:
+        BucketARN:
+          Fn::Join:
+            - ''
+            - - 'arn:aws:s3:::'
+              - Ref: S3BucketName
+        BufferingHints:
+            IntervalInSeconds: 60
+            SizeInMBs: 5
+        CloudWatchLoggingOptions:
+            Enabled: true
+            LogGroupName: "Bluegrass"
+            LogStreamName: "BluegrassInference"
+        CompressionFormat: "UNCOMPRESSED"
+        ErrorOutputPrefix: "kinesis-error-"
+        Prefix: "kinesis-"
+        RoleARN:
+          Fn::Join:
+            - ':'
+            - - 'arn:aws:iam:'
+              - Ref: 'AWS::AccountId'
+              - role/BluegrassStreamingRole
+    DependsOn: BluegrassStreamingRole
+  Core01:
+    Type: 'AWS::IoT::Thing'
+    Properties:
+      ThingName: "Core01"
+  Core01Definition:
+    Type: 'AWS::Greengrass::CoreDefinition'
+    Properties:
+      Name: "Core01Definition"
+  Core01DefinitionVersion:
+    Type: 'AWS::Greengrass::CoreDefinitionVersion'
+    Properties:
+      CoreDefinitionId:
+        Ref: Core01Definition
+      Cores:
+        - Id: "Core01"
+          CertificateArn:
+            Ref: Core01CertificateArn
+          SyncShadow: 'false'
+          ThingArn:
+            Fn::Join:
+              - ':'
+              - - 'arn:aws:iot'
+                - Ref: 'AWS::Region'
+                - Ref: 'AWS::AccountId'
+                - thing/Core01
+  Core02:
+    Type: 'AWS::IoT::Thing'
+    Properties:
+      ThingName: "Core02"
+  Core02Definition:
+    Type: 'AWS::Greengrass::CoreDefinition'
+    Properties:
+      Name: "Core02Definition"
+  Core02DefinitionVersion:
+    Type: 'AWS::Greengrass::CoreDefinitionVersion'
+    Properties:
+      CoreDefinitionId:
+        Ref: Core02Definition
+      Cores:
+        - Id: "Core02"
+          CertificateArn:
+            Ref: Core02CertificateArn
+          SyncShadow: 'false'
+          ThingArn:
+            Fn::Join:
+              - ':'
+              - - 'arn:aws:iot'
+                - Ref: 'AWS::Region'
+                - Ref: 'AWS::AccountId'
+                - thing/Core02
+  InferenceFunctionDefinition:
+    Type: 'AWS::Greengrass::FunctionDefinition'
+    Properties:
+      Name: InferenceFunctionDefinition
+  InferenceFunctionDefinitionVersion:
+    Type: 'AWS::Greengrass::FunctionDefinitionVersion'
+    Properties:
+      FunctionDefinitionId:
+        Fn::GetAtt:
+          - "InferenceFunctionDefinition"
+          - "Id"
+      DefaultConfig:
+        Execution:
+          IsolationMode: GreengrassContainer
+      Functions:
+        - Id: InferenceFunction
+          FunctionArn:
+            Ref: BluegrassInferenceServerFunctionGGAlias
+          FunctionConfiguration:
+            Pinned: 'true'
+            Timeout: '86400'
+            Environment:
+              Variables:
+                BOX_SCORE_THRESHOLD: 0.4
+              ResourceAccessPolicies:
+                - ResourceId: BlueoilModel
+              Execution:
+                IsolationMode: NoContainer
+                RunAs:
+                  Uid: '0'
+                  Gid: '0'
+  ModelResourceDefinition:
+    Type: 'AWS::Greengrass::ResourceDefinition'
+    Properties:
+      Name: ModelResourceDefinition
+  ModelResourceDefinitionVersion:
+    Type: 'AWS::Greengrass::ResourceDefinitionVersion'
+    Properties:
+      ResourceDefinitionId:
+        Ref: ModelResourceDefinition
+      Resources:
+        - Id: BlueoilModel
+          Name: S3MachineLearningModelResourceData
+          ResourceDataContainer:
+            S3MachineLearningModelResourceData:
+              DestinationPath: /blueoil/output
+              S3Uri:
+                Ref: ModelS3Uri
+              OwnerSetting:
+                GroupOwner: "0"
+                GroupPermission: "ro"
+  StreamConnectorDefinition:
+    Type: 'AWS::Greengrass::ConnectorDefinition'
+    Properties:
+      Name: StreamConnectorDefinition
+  StreamConnectorDefinitionVersion:
+    Type: 'AWS::Greengrass::ConnectorDefinitionVersion'
+    Properties:
+      ConnectorDefinitionId:
+        Ref: StreamConnectorDefinition
+      Connectors:
+        - Id: StreamConnector
+          ConnectorArn:
+            Fn::Join:
+              - ':'
+              - - 'arn:aws:greengrass'
+                - Ref: 'AWS::Region'
+                - ':/connectors/KinesisFirehose/versions/3'
+          Parameters:
+            DefaultDeliveryStreamArn:
+              Fn::GetAtt:
+                - "BluegrassInferenceStream"
+                - "Arn"
+            DeliveryStreamQueueSize: 5000
+            MemorySize: 65535
+            PublishInterval: 10
+  StreamSubscriptionDefinition:
+    Type: 'AWS::Greengrass::SubscriptionDefinition'
+    Properties:
+      Name: StreamSubscriptionDefinition
+  StreamSubscriptionDefinitionVersion:
+    Type: 'AWS::Greengrass::SubscriptionDefinitionVersion'
+    Properties:
+      SubscriptionDefinitionId:
+        Ref: StreamSubscriptionDefinition
+      Subscriptions:
+        - Id: InferenceResultToStream
+          Source:
+            Ref: BluegrassInferenceServerFunctionGGAlias
+          Subject: kinesisfirehose/message
+          Target:
+            Fn::Join:
+              - ':'
+              - - 'arn:aws:greengrass'
+                - Ref: 'AWS::Region'
+                - ':/connectors/KinesisFirehose/versions/3'
+        - Id: InferenceImageToStream
+          Source:
+            Ref: BluegrassInferenceServerFunctionGGAlias
+          Subject: kinesisfirehose/message/binary/#
+          Target:
+            Fn::Join:
+              - ':'
+              - - 'arn:aws:greengrass'
+                - Ref: 'AWS::Region'
+                - ':/connectors/KinesisFirehose/versions/3'
+        - Id: InferenceServerToIotCore
+          Source:
+            Ref: BluegrassInferenceServerFunctionGGAlias
+          Subject: inference/result
+          Target: "cloud"
+        - Id: StreamStatus
+          Source:
+            Fn::Join:
+              - ':'
+              - - 'arn:aws:greengrass'
+                - Ref: 'AWS::Region'
+                - ':/connectors/KinesisFirehose/versions/3'
+          Subject: kinesisfirehose/message/status
+          Target: "cloud"
+  Core01Group:
+    Type: 'AWS::Greengrass::Group'
+    Properties:
+      Name: Core01Group
+      RoleArn:
+        Fn::Join:
+          - ':'
+          - - 'arn:aws:iam:'
+            - Ref: 'AWS::AccountId'
+            - role/BluegrassRole
+      InitialVersion:
+        ConnectorDefinitionVersionArn:
+          Ref: StreamConnectorDefinitionVersion
+        CoreDefinitionVersionArn:
+          Ref: Core01DefinitionVersion
+        FunctionDefinitionVersionArn:
+          Ref: InferenceFunctionDefinitionVersion
+        ResourceDefinitionVersionArn:
+          Ref: ModelResourceDefinitionVersion
+        SubscriptionDefinitionVersionArn:
+          Ref: StreamSubscriptionDefinitionVersion
+  Core02Group:
+    Type: 'AWS::Greengrass::Group'
+    Properties:
+      Name: Core02Group
+      RoleArn:
+        Fn::Join:
+          - ':'
+          - - 'arn:aws:iam:'
+            - Ref: 'AWS::AccountId'
+            - role/BluegrassRole
+      InitialVersion:
+        ConnectorDefinitionVersionArn:
+          Ref: StreamConnectorDefinitionVersion
+        CoreDefinitionVersionArn:
+          Ref: Core02DefinitionVersion
+        FunctionDefinitionVersionArn:
+          Ref: InferenceFunctionDefinitionVersion
+        ResourceDefinitionVersionArn:
+          Ref: ModelResourceDefinitionVersion
+        SubscriptionDefinitionVersionArn:
+          Ref: StreamSubscriptionDefinitionVersion
+  BluegrassPolicy:
+    Type: AWS::IoT::Policy
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+            - "iot:Publish"
+            - "iot:Subscribe"
+            - "iot:Connect"
+            - "iot:Receive"
+          Resource:
+            - "*"
+        - Effect: Allow
+          Action:
+            - "greengrass:*"
+          Resource:
+            - "*"
+      PolicyName: "BluegrassPolicy"
+  Core01PolicyPrincipalAttachment:
+    Type: AWS::IoT::PolicyPrincipalAttachment
+    Properties:
+      PolicyName: "BluegrassPolicy"
+      Principal:
+        Ref: Core01CertificateArn
+    DependsOn: BluegrassPolicy
+  Core01ThingPrincipalAttachment:
+    Type: AWS::IoT::ThingPrincipalAttachment
+    Properties:
+      ThingName: "Core01"
+      Principal:
+        Ref: Core01CertificateArn
+    DependsOn: Core01
+  Core02PolicyPrincipalAttachment:
+    Type: AWS::IoT::PolicyPrincipalAttachment
+    Properties:
+      PolicyName: "BluegrassPolicy"
+      Principal:
+        Ref: Core02CertificateArn
+    DependsOn: BluegrassPolicy
+  Core02ThingPrincipalAttachment:
+    Type: AWS::IoT::ThingPrincipalAttachment
+    Properties:
+      ThingName: "Core02"
+      Principal:
+        Ref: Core02CertificateArn
+    DependsOn: Core02
+Outputs:
+  CommandToDeployGroup:
+    Value:
+      Fn::Join:
+        - ' '
+        - - groupVersion1=$(cut -d'/' -f6 <<<
+          - Fn::GetAtt:
+              - "Core01Group"
+              - "LatestVersionArn"
+          - );
+          - groupVersion2=$(cut -d'/' -f6 <<<
+          - Fn::GetAtt:
+              - "Core02Group"
+              - "LatestVersionArn"
+          - );
+          - aws --region
+          - Ref: 'AWS::Region'
+          - greengrass create-deployment --group-id
+          - Ref: Core01Group
+          - '--deployment-type NewDeployment --group-version-id'
+          - $groupVersion1;
+          - aws --region
+          - Ref: 'AWS::Region'
+          - greengrass create-deployment --group-id
+          - Ref: Core02Group
+          - '--deployment-type NewDeployment --group-version-id'
+          - $groupVersion2;

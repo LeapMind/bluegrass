@@ -1,0 +1,13 @@
+AWSTemplateFormatVersion: 2010-09-09
+Resources:
+  BlueoilNotebook:
+    Type: 'AWS::SageMaker::NotebookInstance'
+    Properties:
+      InstanceType: "ml.t2.medium"
+      NotebookInstanceName: "BlueoilNotebook"
+      RoleArn:
+        Fn::Join:
+          - ':'
+          - - 'arn:aws:iam:'
+            - Ref: 'AWS::AccountId'
+            - role/BlueoilSagemakerRole

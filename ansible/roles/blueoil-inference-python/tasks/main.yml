@@ -1,0 +1,18 @@
+- name: Install pillow dependency
+  apt:
+    name:
+      - libjpeg8-dev
+      - zlib1g-dev
+    state: latest
+- name: Install python-opencv
+  apt:
+    name: python-opencv
+    state: latest
+- name: Download requirements.txt
+  get_url:
+    url: "https://raw.githubusercontent.com/blue-oil/blueoil/{{ blueoil_version }}/output_template/python/requirements.txt"
+    dest: /tmp/requirements.txt
+    force: yes
+- name: Install requirements
+  pip:
+    requirements: /tmp/requirements.txt

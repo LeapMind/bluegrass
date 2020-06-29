@@ -1,0 +1,7 @@
+- hosts: all
+  roles:
+    - blueoil-inference-os
+    - blueoil-inference-python
+    - greengrass
+  vars_files:
+    - vars/de10nano.yml

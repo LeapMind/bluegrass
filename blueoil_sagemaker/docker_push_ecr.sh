@@ -14,18 +14,19 @@
 # language governing permissions and limitations under the License.
 
 # The name of our algorithm
-algorithm_name=sagemaker-tf-cifar10-example
+algorithm_name=${1:-blueoil-sagemaker}
 
-cd container
-
-chmod +x cifar10/train
-chmod +x cifar10/serve
+# The base image of docker image
+base_image=${2}
+if [ -n ${base_image} ]; then
+    build_arg="--build-arg base_image=${base_image}"
+fi
 
 account=$(aws sts get-caller-identity --query Account --output text)
 
 # Get the region defined in the current configuration (default to us-west-2 if none defined)
 region=$(aws configure get region)
-region=${region:-us-west-2}
+region=${region:-ap-northeast-1}
 
 fullname="${account}.dkr.ecr.${region}.amazonaws.com/${algorithm_name}:latest"
 
@@ -44,7 +45,7 @@ $(aws ecr get-login --region ${region} --no-include-email)
 # Build the docker image locally with the image name and then push it to ECR
 # with the full name.
 
-docker build  -t ${algorithm_name} .
+docker build  -t ${algorithm_name} ${build_arg} .
 docker tag ${algorithm_name} ${fullname}
 
 docker push ${fullname}

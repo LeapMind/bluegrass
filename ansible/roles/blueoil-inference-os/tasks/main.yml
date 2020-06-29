@@ -1,0 +1,46 @@
+- name: Extract kernel modules
+  unarchive:
+    src: "https://storage.googleapis.com/blueoil-asia-northeast1/os-images/de10nano/kernel/{{ kernel_version }}/modules.tgz"
+    dest: /lib/modules/
+    remote_src: yes
+  when:
+    - ansible_kernel != kernel_version
+- name: Mount /dev/mmcblk0p1 temporarily
+  mount:
+    path: /media
+    src: /dev/mmcblk0p1
+    fstype: vfat
+    opts: rw,noauto
+    state: mounted
+- name: Update zImage
+  get_url:
+    url: "https://storage.googleapis.com/blueoil-asia-northeast1/os-images/de10nano/kernel/{{ kernel_version }}/zImage"
+    dest: /media/zImage
+    force: yes
+  when:
+    - ansible_kernel != kernel_version  
+- name: Update soc_system.rbf
+  get_url:
+    url: "https://raw.githubusercontent.com/blue-oil/blueoil/{{ blueoil_version }}/output_template/fpga/soc_system.rbf"
+    dest: /media/soc_system.rbf
+    force: yes
+- name: Update soc_system.dtb
+  get_url:
+    url: "https://storage.googleapis.com/blueoil-asia-northeast1/os-images/de10nano/cloud-native-image/soc_system.dtb"
+    dest: /media/soc_system.dtb
+    force: yes
+- name: Update u-boot.scr
+  get_url:
+    url: "https://storage.googleapis.com/blueoil-asia-northeast1/os-images/de10nano/u-boot.scr"
+    dest: /media/u-boot.scr
+    force: yes
+- name: Download preloader
+  get_url:
+    url: "https://raw.githubusercontent.com/blue-oil/blueoil/{{ blueoil_version }}/output_template/fpga/preloader-mkpimage.bin"
+    dest: /tmp/preloader-mkpimage.bin
+    force: yes
+- name: Update preloader
+  command: dd if=/tmp/preloader-mkpimage.bin of=/dev/mmcblk0p3
+- name: Reboot device
+  reboot:
+    reboot_timeout: 300

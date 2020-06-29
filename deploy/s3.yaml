@@ -1,0 +1,78 @@
+AWSTemplateFormatVersion: 2010-09-09
+Parameters:
+  S3BucketName:
+    Type: String
+Resources:
+  BluegrassS3Bucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    Properties:
+      BucketName:
+        Ref: S3BucketName
+  BluegrassRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: "BluegrassRole"
+      Description: "Role for Bluegrass"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Principal:
+              Service:
+                - "greengrass.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AWSGreengrassResourceAccessRolePolicy"
+  BlueoilSagemakerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: "BlueoilSagemakerRole"
+      Description: "Role for BlueoilSagemaker"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Principal:
+              Service:
+                - "sagemaker.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/AmazonSageMakerFullAccess"
+  BluegrassS3Policy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: "BluegrassS3Policy"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Action:
+              - "s3:ListBucket"
+            Effect: "Allow"
+            Resource:
+              - "arn:aws:s3:::SageMaker"
+              - Fn::GetAtt:
+                  - BluegrassS3Bucket
+                  - Arn
+          -
+            Action:
+              - "s3:GetObject"
+              - "s3:PutObject"
+              - "s3:DeleteObject"
+            Effect: "Allow"
+            Resource:
+              - "arn:aws:s3:::SageMaker/*"
+              - Fn::Join:
+                - "/"
+                - - Fn::GetAtt:
+                      - BluegrassS3Bucket
+                      - Arn
+                  - "*"
+      Roles:
+        - Ref: "BluegrassRole"
+        - Ref: "BlueoilSagemakerRole"
