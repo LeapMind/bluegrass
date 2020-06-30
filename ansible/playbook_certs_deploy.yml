@@ -1,0 +1,5 @@
+- hosts: all
+  roles:
+    - greengrass-certs
+  vars_files:
+    - vars/de10nano.yml

@@ -1,0 +1,30 @@
+- name: Create user for greengrass
+  user:
+    name: ggc_user
+    system: yes
+    state: present
+- name: Create group for greengrass
+  group:
+    name: ggc_group
+    system: yes
+    state: present
+- name: Extract the AWS IoT Greengrass Core Software Package
+  unarchive:
+    src: "https://d1onfpft10uf5o.cloudfront.net/greengrass-core/downloads/{{ greengrass_version }}/greengrass-linux-armv7l-{{ greengrass_version }}.tar.gz"
+    dest: /
+    remote_src: yes
+- name: Create greengrass.service
+  template:
+    src: ../files/greengrass.service
+    dest: /etc/systemd/system/greengrass.service
+    owner: root
+    group: root
+    mode: 0644
+- name: Enable greengrass
+  systemd:
+    name: greengrass.service
+    daemon_reload: yes
+    enabled: yes
+- name: Install greengrasssdk
+  pip:
+    name: greengrasssdk=={{ greengrasssdk_version }}

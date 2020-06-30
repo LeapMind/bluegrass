@@ -1,0 +1,8 @@
+- name: Install pip
+  apt:
+    name: python-pip
+    state: present
+- name: Upgrade pip
+  pip:
+    name: pip
+    state: latest

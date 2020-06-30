@@ -1,0 +1,22 @@
+- name: Create config for greengrass
+  template:
+    src: ../files/config.json.j2
+    dest: /greengrass/config/config.json
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart-greengrass
+- name: Copy certs for greengrass
+  copy:
+    src: ../../../../certs/{{ cert_id }}/
+    dest: /greengrass/certs/
+    owner: root
+    group: root
+    mode: '0600'
+  notify: restart-greengrass
+- name: Download CA cert
+  get_url:
+    url: https://www.amazontrust.com/repository/AmazonRootCA1.pem
+    dest: /greengrass/certs/root.ca.pem
+    mode: '0644'
+  notify: restart-greengrass
