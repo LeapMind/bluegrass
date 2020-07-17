@@ -1,4 +1,4 @@
-# Bluegrass (A sample demonstration system of LeapMind Blueoil x AWS Greengrass)
+# Bluegrass (A sample demonstration system of LeapMind Blueoil x AWS IoT Greengrass)
 ## System Outline
 ![system outline](https://user-images.githubusercontent.com/12394960/85096104-44290480-b22e-11ea-97a9-d0e1b426edfb.png)
 
@@ -15,25 +15,25 @@ You can install with `pip` command.
 $ pip3 install -r requirements.txt
 ```
 
-### Prepare your S3 bucket and Roles for deployment
-Decide your S3 bucket name. Bucket names must be unique across all existing bucket names in Amazon S3. Please see [Bucket Restrictions and Limitations](https://docs.aws.amazon.com/AmazonS3/latest/dev/BucketRestrictions.html).
+### Prepare your Amazon S3 bucket and Roles for deployment
+Decide your Amazon S3 bucket name. Bucket names must be unique across all existing bucket names in Amazon S3. Please see [Bucket Restrictions and Limitations](https://docs.aws.amazon.com/AmazonS3/latest/dev/BucketRestrictions.html).
 ```shell
 $ export BLUEGRASS_S3_BUCKET_NAME=[your S3 bucket name]
 $ aws cloudformation create-stack --stack-name BluegrassS3 --capabilities CAPABILITY_NAMED_IAM --template-body file://$(pwd)/deploy/s3.yaml --parameters ParameterKey="S3BucketName",ParameterValue="${BLUEGRASS_S3_BUCKET_NAME}"
 ```
 Please make sure your bucket is created. Check status from your [cloudformation console](https://console.aws.amazon.com/cloudformation/home).
 
-### Blueoil x SageMaker
-#### Create SageMaker Notebook for training with Blueoil
+### Blueoil x Amazon SageMaker
+#### Create an Amazon SageMaker Notebook instance for training with Blueoil
 ```shell
 $ aws cloudformation create-stack --stack-name BlueoilSagemaker --template-body file://$(pwd)/deploy/sagemaker.yaml
 ```
 
-#### Run training on SageMaker Notebook
+#### Run training on Amazon SageMaker 
 See [blueoil_sagemaker/README.md](blueoil_sagemaker/README.md).
 
-### Blueoil x Greengrass
-#### Create certificate files for Greengrass
+### Blueoil x AWS IoT Greengrass
+#### Create certificate files for AWS IoT Greengrass
 Run following script.
 ```shell
 $ deploy/create_cert.sh
@@ -102,8 +102,8 @@ $ ./deploy/associate_service_role.sh
 ```
 
 ## Update components
-### Update lambda function
-After updating lambda function, you can deploy it.
+### Update AWS Lambda function
+After updating Lambda function, you can deploy it.
 ```shell
 $ cd deploy/lambda_function
 $ ./deploy_lambda.sh
