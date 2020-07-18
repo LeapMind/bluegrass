@@ -7,7 +7,7 @@
 You need following packages to setup components.
 #### AWS CLI
 
-Please set up the AWS Command Line Interface (AWS CLI), check [official refferences](https://docs.aws.amazon.com/polly/latest/dg/setup-aws-cli.html).
+Please set up the AWS Command Line Interface (AWS CLI), check [official refferences](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html).
 #### Ansible
 
 You can install with `pip` command.
