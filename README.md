@@ -7,7 +7,7 @@
 You need following packages to setup components.
 #### AWS CLI
 
-Please set up the AWS Command Line Interface (AWS CLI), check [official refferences](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html).
+Please set up the AWS Command Line Interface (AWS CLI), check [official User Guide](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html). You can choose the region where Amazon SageMaker and AWS IoT Greengrass are supported (see [Region Table](https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/)). 
 #### Ansible
 
 You can install with `pip` command.
