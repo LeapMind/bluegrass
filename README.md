@@ -44,6 +44,7 @@ certificateArn is "arn:aws:iot:xxxxxx:xxxxxx:cert/xxxxxx...xxxxxx"
 Please save your `certificateArn`, this will be used when creating Greengrass components in your AWS account.
 
 #### Create Greengrass components for DE10-Nano
+Run commands below, where `MODEL_S3_URI` will be set as a form of `s3://sagemaker-ap-northeast-1-123456789012/blueoil-sagemaker-2020-XX-XX-XX-XX-XX-XXZ/output/converted/output.tar.gz`. 
 ```shell
 $ export MODEL_S3_URI=[your S3 uri]
 $ export CERT_ARN1=[your certificateArn1]
