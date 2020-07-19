@@ -39,7 +39,7 @@ Run following script.
 $ deploy/create_cert.sh
 ...
 Certificate files are created in certs/xxxxxx...xxxxxx
-certificateArn is "arn:aws:iot:xxxxxx:xxxxxx:cert/xxxxxx...xxxxxx"
+certificateArn is "arn:aws:iot:ap-northeast-1:123456789012:cert/xxxxxx...xxxxxx"
 ```
 Please save your `certificateArn`, this will be used when creating Greengrass components in your AWS account.
 
