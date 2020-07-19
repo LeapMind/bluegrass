@@ -15,7 +15,7 @@
 # =============================================================================
 
 # Create certificate
-aws iot create-keys-and-certificate --set-as-active --certificate-pem-outfile "cert.pem" --public-key-outfile "public.key" --private-key-outfile "private.key" | tee cert_result.log
+aws iot create-keys-and-certificate --set-as-active --certificate-pem-outfile "cert.pem" --public-key-outfile "public.key" --private-key-outfile "private.key" | tee cert_result.log > /dev/null
 
 # Move files to certs directory
 CERT_ID=$(grep certificateArn cert_result.log | awk -F cert/ '{print $2}' | sed -e 's/",//g')
