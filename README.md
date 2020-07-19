@@ -30,7 +30,7 @@ $ aws cloudformation create-stack --stack-name BlueoilSagemaker --template-body 
 ```
 
 #### Run training on Amazon SageMaker 
-See [blueoil_sagemaker/README.md](blueoil_sagemaker/README.md).
+Open Jupyter/JupyterLab on the [Amazon SageMaker console](https://console.aws.amazon.com/sagemaker/). Find and run the notebook in the `bluegrass/blueoil_sagemaker` directory, e.g., [`blueoil_cifar10_example.ipynb`](./blueoil_sagemaker/blueoil_cifar10_example.ipynb) or [`blueoil_openimages_example.ipynb`](./blueoil_sagemaker/blueoil_openimages_example.ipynb) .  
 
 ### Blueoil x AWS IoT Greengrass
 #### Create certificate files for AWS IoT Greengrass
