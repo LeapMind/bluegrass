@@ -1,8 +1,14 @@
-# Bluegrass (A sample demonstration system of LeapMind Blueoil x AWS IoT Greengrass)
+# Bluegrass
+A sample MLOps system of LeapMind Blueoil x AWS Components (AWS IoT Greengrass, Amazon SageMaker)
+
 ## System Outline
-![system outline](https://user-images.githubusercontent.com/12394960/85096104-44290480-b22e-11ea-97a9-d0e1b426edfb.png)
+![system outline](https://user-images.githubusercontent.com/12394960/87919648-12b48a80-cab3-11ea-819d-e799b12d9411.png)
 
 ## Setup AWS environment and devices
+### Prerequisites
+* AWS account
+* Terasic DE10-Nano Kit x 2
+
 ### Requirements
 You need following packages to setup components.
 #### AWS CLI
@@ -42,6 +48,8 @@ Certificate files are created in certs/xxxxxx...xxxxxx
 certificateArn is "arn:aws:iot:ap-northeast-1:123456789012:cert/xxxxxx...xxxxxx"
 ```
 Please save your `certificateArn`, this will be used when creating Greengrass components in your AWS account.
+
+In this sample, you need to run this command twice to create certicicates for each DE10-Nano device.
 
 #### Create Greengrass components for DE10-Nano
 Run commands below, where `MODEL_S3_URI` will be set as a form of `s3://sagemaker-ap-northeast-1-123456789012/blueoil-sagemaker-2020-XX-XX-XX-XX-XX-XXZ/output/converted/output.tar.gz`. 
