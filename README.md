@@ -109,6 +109,31 @@ $ ./deploy/associate_service_role.sh
 }
 ```
 
+## Initial deployment
+### Manualy deployment from the AWS IoT console
+After completing the above installations, you need to deploy a model and an application to devices manually.
+
+Access to the AWS IoT console.
+<div align="center"><img src="https://user-images.githubusercontent.com/12394960/88011703-fff19280-cb52-11ea-91fb-21e5a58ba841.png" width=75%></div>
+Select the group and click [Action] -> [Deploy].
+
+<div align="center"><img src="https://user-images.githubusercontent.com/12394960/88011860-62e32980-cb53-11ea-9b51-6f05336afcb5.png" width=75%></div>
+
+The following screen is shown at the first deployment to the group.
+Select [Automatic detection].
+
+<div align="center"><img src="https://user-images.githubusercontent.com/12394960/88011874-6a0a3780-cb53-11ea-980a-7b6b0f01a89f.png" width=50%></div>
+
+Confirm that the status is changed as [In Progress]->[Successfully Completed] as shown below.
+
+<div align="center">
+  <img src="https://user-images.githubusercontent.com/12394960/88011883-70001880-cb53-11ea-9394-a310e7afbdff.png" width=75%>
+  <img src="https://user-images.githubusercontent.com/12394960/88011891-73939f80-cb53-11ea-82a7-89953f6d2215.png" width=75%>
+</div>
+
+### Check inference results
+You can see the video and inference results by accessing to `http://[device's IP address]:8080`
+
 ## Update components
 ### Update lambda function
 After updating lambda function, you can deploy it.
