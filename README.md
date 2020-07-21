@@ -1,5 +1,5 @@
 # Bluegrass
-A sample MLOps system of LeapMind Blueoil x AWS Components (AWS IoT Greengrass, Amazon SageMaker)
+A sample MLOps system of LeapMind Blueoil x AWS Services (AWS IoT Greengrass, Amazon SageMaker)
 
 ## System Outline
 ![system outline](https://user-images.githubusercontent.com/12394960/87919648-12b48a80-cab3-11ea-819d-e799b12d9411.png)
