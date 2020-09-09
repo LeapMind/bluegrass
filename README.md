@@ -1,6 +1,10 @@
 # Bluegrass
 A sample MLOps system of LeapMind Blueoil x AWS Components (AWS IoT Greengrass, Amazon SageMaker)
 
+## AWS Partner Network (APN) Blog
+The following APN blog describes how to train models and run inference on Intel FPGA Edge Devices by using this repository.
+* [Using Fewer Resources to Run Deep Learning Inference on Intel FPGA Edge Devices](https://aws.amazon.com/jp/blogs/apn/using-fewer-resources-to-run-deep-learning-inference-on-intel-fpga-edge-devices/)
+
 ## System Outline
 ![system outline](https://user-images.githubusercontent.com/12394960/87919648-12b48a80-cab3-11ea-819d-e799b12d9411.png)
 
