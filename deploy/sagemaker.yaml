@@ -5,16 +5,10 @@ Resources:
     Properties:
       InstanceType: "ml.t3.medium"
       NotebookInstanceName: "BlueoilNotebook"
-      LifecycleConfigName: !GetAtt NotebookLifecycleConfig.NotebookInstanceLifecycleConfigName
       RoleArn:
         Fn::Join:
           - ':'
           - - 'arn:aws:iam:'
             - Ref: 'AWS::AccountId'
             - role/BlueoilSagemakerRole
-  NotebookLifecycleConfig:
-    Type: 'AWS::SageMaker::NotebookInstanceLifecycleConfig'
-    Properties:
-      NotebookInstanceLifecycleConfigName: clone-bluegrass-repository
-      OnCreate:
-        - Content: 'IyEvYmluL2Jhc2gKc3VkbyAtdSBlYzItdXNlciAtaSA8PCdFT0YnCmNkIC9ob21lL2VjMi11c2VyL1NhZ2VNYWtlciAmJiBnaXQgY2xvbmUgaHR0cHM6Ly9naXRodWIuY29tL0xlYXBNaW5kL2JsdWVncmFzcy5naXQKRU9G'
+      DefaultCodeRepository: 'https://github.com/LeapMind/bluegrass'
