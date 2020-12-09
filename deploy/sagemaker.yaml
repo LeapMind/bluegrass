@@ -3,7 +3,7 @@ Resources:
   BlueoilNotebook:
     Type: 'AWS::SageMaker::NotebookInstance'
     Properties:
-      InstanceType: "ml.t2.medium"
+      InstanceType: "ml.t3.medium"
       NotebookInstanceName: "BlueoilNotebook"
       RoleArn:
         Fn::Join:
@@ -11,3 +11,4 @@ Resources:
           - - 'arn:aws:iam:'
             - Ref: 'AWS::AccountId'
             - role/BlueoilSagemakerRole
+      DefaultCodeRepository: 'https://github.com/LeapMind/bluegrass'

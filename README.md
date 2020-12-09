@@ -1,5 +1,5 @@
 # Bluegrass
-A sample MLOps system of LeapMind Blueoil x AWS Components (AWS IoT Greengrass, Amazon SageMaker)
+A sample MLOps system of LeapMind Blueoil x AWS Services (AWS IoT Greengrass, Amazon SageMaker)
 
 ## AWS Partner Network (APN) Blog
 The following APN blog describes how to train models and run inference on Intel FPGA Edge Devices by using this repository.
@@ -15,35 +15,35 @@ The following APN blog describes how to train models and run inference on Intel 
 
 ### Requirements
 You need following packages to setup components.
-* AWS CLI
+#### AWS CLI
 
-Please set up the AWS Command Line Interface (AWS CLI), check [official refferences](https://docs.aws.amazon.com/polly/latest/dg/setup-aws-cli.html).
-* Ansible
+Please set up the AWS Command Line Interface (AWS CLI), check [official User Guide](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html). You can choose the region where Amazon SageMaker and AWS IoT Greengrass are supported (see [Region Table](https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/)). 
+#### Ansible
 
 You can install with `pip` command.
 ```shell
 $ pip3 install -r requirements.txt
 ```
 
-### Prepare your S3 bucket and Roles for deployment
-Decide your S3 bucket name. Bucket names must be unique across all existing bucket names in Amazon S3. Please see [Bucket Restrictions and Limitations](https://docs.aws.amazon.com/AmazonS3/latest/dev/BucketRestrictions.html).
+### Prepare your Amazon S3 bucket and Roles for deployment
+Decide your Amazon S3 bucket name. Bucket names must be unique across all existing bucket names in Amazon S3. Please see [Bucket Restrictions and Limitations](https://docs.aws.amazon.com/AmazonS3/latest/dev/BucketRestrictions.html).
 ```shell
 $ export BLUEGRASS_S3_BUCKET_NAME=[your S3 bucket name]
 $ aws cloudformation create-stack --stack-name BluegrassS3 --capabilities CAPABILITY_NAMED_IAM --template-body file://$(pwd)/deploy/s3.yaml --parameters ParameterKey="S3BucketName",ParameterValue="${BLUEGRASS_S3_BUCKET_NAME}"
 ```
 Please make sure your bucket is created. Check status from your [cloudformation console](https://console.aws.amazon.com/cloudformation/home).
 
-### Blueoil x SageMaker
-#### Create SageMaker Notebook for training with Blueoil
+### Blueoil x Amazon SageMaker
+#### Create an Amazon SageMaker Notebook instance for training with Blueoil
 ```shell
 $ aws cloudformation create-stack --stack-name BlueoilSagemaker --template-body file://$(pwd)/deploy/sagemaker.yaml
 ```
 
-#### Run training on SageMaker Notebook
-See [blueoil_sagemaker/README.md](blueoil_sagemaker/README.md).
+#### Run training on Amazon SageMaker 
+Open Jupyter/JupyterLab on the [Amazon SageMaker console](https://console.aws.amazon.com/sagemaker/). Find and run the notebook in the `bluegrass/blueoil_sagemaker` directory, e.g., [`blueoil_cifar10_example.ipynb`](./blueoil_sagemaker/blueoil_cifar10_example.ipynb) or [`blueoil_openimages_example.ipynb`](./blueoil_sagemaker/blueoil_openimages_example.ipynb) .  
 
-### Blueoil x Greengrass
-#### Create certificate files for Greengrass
+### Blueoil x AWS IoT Greengrass
+#### Create certificate files for AWS IoT Greengrass
 Run following script.
 ```shell
 $ deploy/create_cert.sh
@@ -56,6 +56,7 @@ Please save your `certificateArn`, this will be used when creating Greengrass co
 In this sample, you need to run this command twice to create certicicates for each DE10-Nano device.
 
 #### Create Greengrass components for DE10-Nano
+Run commands below, where `MODEL_S3_URI` will be set as a form of `s3://sagemaker-xxxxxx/blueoil-sagemaker-2020-XX-XX-XX-XX-XX-XXZ/output/converted/output.tar.gz`. 
 ```shell
 $ export MODEL_S3_URI=[your S3 uri]
 $ export CERT_ARN1=[your certificateArn1]
@@ -139,8 +140,8 @@ Confirm that the status is changed as [In Progress]->[Successfully Completed] as
 You can see the video and inference results by accessing to `http://[device's IP address]:8080`
 
 ## Update components
-### Update lambda function
-After updating lambda function, you can deploy it.
+### Update AWS Lambda function
+After updating Lambda function, you can deploy it.
 ```shell
 $ cd deploy/lambda_function
 $ ./deploy_lambda.sh
